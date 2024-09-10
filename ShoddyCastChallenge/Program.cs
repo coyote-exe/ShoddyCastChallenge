@@ -20,7 +20,7 @@ int executeRolls(long amount)
         numbers = new int[] { 0, 0, 0, 0 }; // numbers = [0, 0, 0, 0]
         for (int i = 0; i < 231; i++) // for i in repeat(None, 231):
         {
-            var roll = randomNumberGenerator.Next(1, 4); //roll = random.choice(items)
+            var roll = randomNumberGenerator.Next(1, 5); //roll = random.choice(items) -- "1 to 5" because for some reason the upper bound is exclusive while the lower bound is inclusive. more information at https://learn.microsoft.com/en-us/dotnet/api/system.random.next?view=net-8.0#system-random-next(system-int32-system-int32)
             numbers[roll - 1] = numbers[roll - 1] + 1; // numbers[roll - 1] = numbers[roll - 1] + 1
         }
         rolls = rolls + 1; // rolls = rolls + 1
