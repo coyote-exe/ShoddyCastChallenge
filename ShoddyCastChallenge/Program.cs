@@ -1,11 +1,23 @@
-﻿// See https://aka.ms/new-console-template for more information
-using System.Diagnostics;
+﻿using System.Diagnostics;
 Stopwatch sw = new Stopwatch();
 sw.Start();
 Console.WriteLine("Starting...");
 long rolls = 1000000000;
-var executionResult = executeRolls(rolls);
-Console.WriteLine("Highest Ones Roll: {0}", executionResult);
+var cpucores = Environment.ProcessorCount;
+long rollPerCpuThread = rolls / cpucores;
+Task<int>[] answersTasks = new Task<int>[cpucores];
+Console.WriteLine("total rolls:" + rolls);
+Console.WriteLine("CPU cores:" + cpucores);
+Console.WriteLine("CPU rolls per Thread:" + rollPerCpuThread);
+Console.WriteLine("starting threads...");
+for (int a = 0; a < cpucores; a++)
+{
+    Console.WriteLine("Starting thread {0}", a + 1);
+    answersTasks[a] = Task.Run(() => executeRolls(rollPerCpuThread));
+}
+await Task.WhenAll(answersTasks);
+var cpu_res = getResultsFromTasks(cpucores, answersTasks).Max();
+Console.WriteLine("Highest Ones Roll: {0}", cpu_res);
 Console.WriteLine("finished in {0} seconds", sw.Elapsed.TotalSeconds);
 Console.ReadLine();
 
@@ -28,4 +40,12 @@ int executeRolls(long amount)
             maxOnes = numbers[0]; // maxOnes = numbers[0]
     }
     return maxOnes;
+}
+
+int[] getResultsFromTasks(int cores, Task<int>[] answersTasks)
+{
+    int[] answers = new int[cores];
+    for (int a = 0; a < cores; a++)
+        answers[a] = answersTasks[a].Result;
+    return answers;
 }
