@@ -1,23 +1,34 @@
-﻿using System.Diagnostics;
+﻿using poekmoncsharp;
+using System.Diagnostics;
 Stopwatch sw = new Stopwatch();
 sw.Start();
 Console.WriteLine("Starting...");
 long rolls = 1000000000;
+var mainRNumberGenerator = new Random();
 var cpucores = Environment.ProcessorCount;
-long rollPerCpuThread = rolls / cpucores;
+long GPURolls = (rolls / 5) * 4;
+long CPURolls = rolls - GPURolls;
+long rollPerCpuThread = CPURolls / cpucores;
 Task<int>[] answersTasks = new Task<int>[cpucores];
 Console.WriteLine("total rolls:" + rolls);
+Console.WriteLine("***CPU information***");
+Console.WriteLine("CPU rolls:" + CPURolls);
 Console.WriteLine("CPU cores:" + cpucores);
 Console.WriteLine("CPU rolls per Thread:" + rollPerCpuThread);
+Console.WriteLine("***GPU information***");
+Console.WriteLine("GPU rolls:" + GPURolls);
 Console.WriteLine("starting threads...");
 for (int a = 0; a < cpucores; a++)
 {
     Console.WriteLine("Starting thread {0}", a + 1);
     answersTasks[a] = Task.Run(() => executeRolls(rollPerCpuThread));
 }
+var gp = new ToGPU();
+var gpu_res = gp.Send(GPURolls, mainRNumberGenerator.Next(1, Int32.MaxValue), false);
 await Task.WhenAll(answersTasks);
 var cpu_res = getResultsFromTasks(cpucores, answersTasks).Max();
-Console.WriteLine("Highest Ones Roll: {0}", cpu_res);
+Console.WriteLine("Highest Ones Roll from CPU: {0}", cpu_res);
+Console.WriteLine("Highest Ones Roll from GPU: {0}", gpu_res);
 Console.WriteLine("finished in {0} seconds", sw.Elapsed.TotalSeconds);
 Console.ReadLine();
 
@@ -39,6 +50,7 @@ int executeRolls(long amount)
         if (numbers[0] > maxOnes) // if numbers[0] > maxOnes:
             maxOnes = numbers[0]; // maxOnes = numbers[0]
     }
+    Console.WriteLine("CPU thread ended");
     return maxOnes;
 }
 
